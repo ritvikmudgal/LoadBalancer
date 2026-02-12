@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Load Balancer Simulation</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* BASE STYLES */
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #1f2429, #272b31);
+    color: #e1e4e8;
+    padding: 60px 24px;
+    min-height: 100vh;
+}
+
+/* CONTAINER */
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* HERO SECTION - Image + Text side by side */
+.hero-section {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin-bottom: 48px;
+}
+
+.hero {
+    width: 220px;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+}
+
+.hero-text {
+    flex: 1;
+}
+
+/* TITLES */
+h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #f2f2f2;
+    text-align: left;
+}
+
+.subtitle {
+    color: #a0a6ab;
+    font-size: 1.05rem;
+    text-align: left;
+    line-height: 1.6;
+}
+
+/* Responsive: stack on smaller screens */
+@media (max-width: 600px) {
+    .hero-section {
+        flex-direction: column;
+        text-align: center;
+    }
+    h1, .subtitle {
+        text-align: center;
+    }
+}
+
+/* SCALING CARDS */
+.scaling-cards {
+    display: flex;
+    gap: 28px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.card {
+    background: #2c3035;
+    border: 1px solid #3a3f45;
+    border-radius: 14px;
+    padding: 28px;
+    flex: 1;
+    min-width: 280px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(120deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+    transform: skewX(-25deg) translateX(-100%);
+    transition: transform 0.7s ease;
+}
+
+.card:hover::after {
+    transform: skewX(-25deg) translateX(100%);
+}
+
+.card h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #e1e4e8;
+    margin-bottom: 10px;
+}
+
+.card p {
+    font-size: 0.95rem;
+    color: #adb3b8;
+    line-height: 1.55;
+}
+
+.specs {
+    margin-top: 16px;
+    font-size: 0.85rem;
+    color: #caac71;
+    font-weight: 500;
+}
+
+/* OUTPUT SECTION */
+.output-section {
+    background: #2c3035;
+    border-radius: 14px;
+    padding: 30px;
+    border: 1px solid #3a3f45;
+    margin-top: 20px;
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #3a3f45;
+}
+
+.output-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e1e4e8;
+}
+
+.status-indicator {
+    font-size: 0.85rem;
+    color: #adb3b8;
+}
+
+.result-container {
+    min-height: 180px;
+}
+
+/* SUMMARY BOX */
+.summary-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.summary-item {
+    background: #32363c;
+    padding: 18px;
+    border-radius: 10px;
+    border: 1px solid #3a3f45;
+}
+
+.summary-item .number {
+    font-size: 1.85rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #9dbbb7;
+}
+
+.summary-item .label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    color: #adb3b8;
+    letter-spacing: 0.5px;
+}
+
+/* REQUEST LIST */
+.section-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #adb3b8;
+    letter-spacing: 0.7px;
+    margin-bottom: 12px;
+}
+
+.request-list {
+    list-style: none;
+}
+
+.request-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #32363c;
+    border-radius: 8px;
+    border: 1px solid #3a3f45;
+    margin-bottom: 10px;
+    transition: 0.2s ease;
+}
+
+.request-item:hover {
+    background: #3a3f45;
+}
+
+.request-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 0.9rem;
+    color: #e1e4e8;
+}
+
+.status-badge {
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.status-success {
+    background: rgba(158, 232, 185, 0.15);
+    color: #33a37d;
+}
+
+.status-retry {
+    background: rgba(242, 197, 130, 0.18);
+    color: #ca8a04;
+}
+
+/* SERVERS VISUAL */
+.servers-visual {
+    display: flex;
+    gap: 18px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+}
+
+.server-box {
+    background: #32363c;
+    border-radius: 10px;
+    padding: 16px;
+    width: 120px;
+    border: 1px solid #3a3f45;
+}
+
+.server-name {
+    font-size: 0.78rem;
+    color: #adb3b8;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.bar {
+    height: 76px;
+    background: #3a3f45;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.fill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: #9dbbb7;
+    transition: height 0.4s ease;
+}
+
+.count {
+    font-size: 0.75rem;
+    margin-top: 8px;
+    color: #adb3b8;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Hero Section: Image + Text -->
+    <div class="hero-section">
+        <img src="https://www.limestonenetworks.com/assets/home-server-racks.jpg" alt="Server Network" class="hero">
+        <div class="hero-text">
+            <h1>Load Balancer Simulation</h1>
+            <p class="subtitle">Evaluate horizontal and vertical scaling strategies with real-time visuals</p>
+        </div>
+    </div>
+
+    <!-- Scaling Cards -->
+    <div class="scaling-cards">
+        <div class="card" onclick="run('horizontal')">
+            <h2>Horizontal Scaling</h2>
+            <p>Add servers to distribute load evenly across the system.</p>
+            <div class="specs">6 servers × 2 requests = 12 capacity</div>
+        </div>
+
+        <div class="card" onclick="run('vertical')">
+            <h2>Vertical Scaling</h2>
+            <p>Increase server capacity to handle more requests per machine.</p>
+            <div class="specs">4 servers × 3 requests = 12 capacity</div>
+        </div>
+    </div>
+
+    <!-- Output Section -->
+    <div class="output-section">
+        <div class="output-header">
+            <h3>Simulation Results</h3>
+            <div class="status-indicator">Waiting for selection...</div>
+        </div>
+
+        <div id="output" class="result-container">
+            <p style="color:#adb3b8;">Make a selection above to begin simulation.</p>
+        </div>
+
+        <div id="servers-visual" class="servers-visual"></div>
+    </div>
+</div>
+
+<script>
+function run(choice) {
+    document.querySelector(".status-indicator").innerText = "Running simulation...";
+    document.getElementById("output").innerHTML = "<p style='color:#adb3b8;'>Processing...</p>";
+    document.getElementById("servers-visual").innerHTML = "";
+
+    fetch("http://127.0.0.1:5000/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ choice: choice })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.querySelector(".status-indicator").innerText = "Simulation complete";
+        renderFriendlyOutput(data);
+        if (data.servers) renderServers(data.servers);
+    })
+    .catch(() => {
+        document.querySelector(".status-indicator").innerText = "Error connecting to service";
+        document.getElementById("output").innerHTML =
+            "<p style='color:#e87979;'>Unable to connect to backend.</p>";
+    });
+}
+
+function renderFriendlyOutput(data) {
+    const container = document.getElementById("output");
+
+    const totalRequests = data.results?.length || 0;
+    const accepted = data.results?.filter(r => r.status === "ACCEPTED").length || 0;
+    const totalRetries = data.results?.reduce((sum, r) => sum + (r.attempts - 1), 0) || 0;
+    const serverCount = data.servers?.length || 0;
+
+    let html = `
+        <div class="summary-box">
+            <div class="summary-item">
+                <div class="number">${totalRequests}</div>
+                <div class="label">Total Requests</div>
+            </div>
+            <div class="summary-item">
+                <div class="number">${accepted}</div>
+                <div class="label">Accepted</div>
+            </div>
+            <div class="summary-item">
+                <div class="number">${totalRetries}</div>
+                <div class="label">Retries</div>
+            </div>
+            <div class="summary-item">
+                <div class="number">${serverCount}</div>
+                <div class="label">Servers</div>
+            </div>
+        </div>
+    `;
+
+    if (data.results?.length) {
+        html += `<div class="section-title">Request Distribution</div><ul class="request-list">`;
+        data.results.forEach(result => {
+            const hadRetries = result.attempts > 1;
+            html += `
+                <li class="request-item">
+                    <div class="request-meta">
+                        <span>${result.request}</span><span>→</span><span>${result.server}</span>
+                    </div>
+                    <span class="status-badge ${hadRetries ? 'status-retry' : 'status-success'}">
+                        ${hadRetries ? (result.attempts - 1) + " Retries" : "Processed"}
+                    </span>
+                </li>
+            `;
+        });
+        html += "</ul>";
+    }
+
+    container.innerHTML = html;
+}
+
+function renderServers(servers) {
+    const container = document.getElementById("servers-visual");
+    servers.forEach(server => {
+        const fillPercent = (server.current / server.max) * 100;
+        const box = document.createElement("div");
+        box.className = "server-box";
+        box.innerHTML = `
+            <div class="server-name">${server.name}</div>
+            <div class="bar">
+                <div class="fill" style="height:${fillPercent}%;"></div>
+            </div>
+            <div class="count">${server.current}/${server.max}</div>
+        `;
+        container.appendChild(box);
+    });
+}
+</script>
+
+</body>
+</html>
