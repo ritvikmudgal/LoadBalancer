@@ -346,7 +346,7 @@ function run(choice) {
     document.getElementById("output").innerHTML = "<p style='color:#adb3b8;'>Processing...</p>";
     document.getElementById("servers-visual").innerHTML = "";
 
-    fetch("http://127.0.0.1:5000/run", {
+    fetch("https://loadbalancer-2-khf4.onrender.com/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ choice: choice })
